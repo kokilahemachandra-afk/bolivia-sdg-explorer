@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bolivia SDG 13–15 Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a field atlas plate from an environmental observatory, calm and exact
+   IDEA: the municipal atlas sheet, one map you can re-ink with any indicator
+   PICTURE: the full municipal map of Bolivia, large, clickable, with a detail card
+   COLOUR and TYPE: forest green band, fire orange accent, sand support; Archivo (condensed for labels)
+   LAYOUT: finding band, map + panel, then typology, links, table, notes */
+:root{color-scheme:light dark;--bg:light-dark(#fcfcfa,#0e1d17);--ink:light-dark(#14261e,#e7efe9);--mut:light-dark(#5b6b62,#9fb3a8);--line:light-dark(#dfe3dc,#2a3d34);--card:light-dark(#f3f4ef,#15291f);--forest:#1f5a3d;--fire:#d9572b;--sand:#e9e2cf;--na:light-dark(#d9dad5,#33423a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Archivo,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(28px,4vw,56px) max(5vw,16px)}.wrap{max-width:1240px;margin:0 auto}
+.hero{background:var(--forest);color:#f2f6f1}
+.hero h1{font-size:clamp(30px,4.2vw,48px);line-height:1.05;margin:0 0 14px;font-weight:750;text-wrap:balance;max-width:20ch}
+.hero p{max-width:66ch;margin:0;color:#cfe0d4}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:28px}
+.kpi{border-top:2px solid rgba(255,255,255,.35);padding-top:10px}
+.kpi b{display:block;font-size:clamp(30px,3.4vw,42px);line-height:1;font-weight:800;color:#ffd2bf}
+.kpi span{font-size:14px;color:#cfe0d4}
+h2{font-size:clamp(24px,2.6vw,32px);line-height:1.1;margin:0 0 6px;font-weight:750;text-wrap:balance}
+.sub{color:var(--mut);margin:0 0 18px;max-width:70ch}
+.explore{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:24px;align-items:start}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+select,input{font:inherit;font-size:16px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--fire);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-size:15px;min-height:44px;padding:0 14px;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--forest);color:#fff}.seg button:disabled{opacity:.4;cursor:not-allowed}
+.mapbox{position:relative;background:var(--card);border-radius:14px;padding:10px}
+#map{width:100%;height:auto;display:block}#map path{stroke:var(--bg);stroke-width:.6;cursor:pointer;vector-effect:non-scaling-stroke}
+#map path:hover{stroke:var(--ink);stroke-width:1.5}#map path.sel{stroke:var(--fire);stroke-width:3}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:13px;color:var(--mut);margin-top:10px;align-items:center}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;padding:6px 9px;border-radius:8px;display:none;max-width:260px;z-index:2}
+.panel{background:var(--card);border-radius:14px;padding:20px}
+.panel h3{font-size:26px;line-height:1.1;margin:0}.panel .dep{color:var(--mut);margin:2px 0 12px}
+.pill{display:inline-block;font-size:13px;font-weight:700;padding:3px 10px;border-radius:99px;color:#fff;margin-bottom:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}th{font-weight:700;color:var(--mut);font-size:13px}
+.up{color:#c4471d}.dn{color:#2f6db0}
+.grid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:start}
+.fig{position:relative;min-height:380px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.heat td{text-align:center;font-variant-numeric:tabular-nums;border:2px solid var(--bg);font-size:14px;padding:8px 4px}.heat th{font-size:12px;line-height:1.2;vertical-align:bottom}
+.heat th:first-child{width:34%}#corr,#load{overflow-x:auto}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;align-items:center}
+.btn{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--forest);background:var(--forest);color:#fff;cursor:pointer}
+.scroll{overflow-x:auto;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px}
+.scroll th{position:sticky;top:0;background:var(--bg);cursor:pointer}.scroll tr{cursor:pointer}.scroll tr:hover td{background:var(--card)}
+.note{font-size:14px;color:var(--mut);max-width:80ch}
+a{color:var(--fire)}
+.tabs{display:flex;margin-bottom:10px}.tabs button{flex:1}
+#info h3{font-size:24px;line-height:1.15;margin:0 0 6px}#info p{margin:0 0 10px;font-size:15px}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}.facts span{font-size:13px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:2px 10px}
+.ranks{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:6px}
+.ranks h4{margin:0 0 4px;font-size:14px}.ranks ol{margin:0;padding-left:22px;font-size:14px}
+.ranks li{padding:2px 0;cursor:pointer}.ranks li:hover{color:var(--fire)}.rk{display:flex;gap:8px;justify-content:space-between;align-items:baseline}.rk b{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.ld{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:4px 10px;font-size:14px;margin:6px 0 12px;align-items:center}
+.ld i{display:block;height:10px;border-radius:3px}
+@media(max-width:600px){.ranks{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:900px){.explore,.grid2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){table{font-size:13px}.heat td{font-size:12px}}
+@media(prefers-reduced-motion:no-preference){#map path{transition:fill .35s}}
+</style>
+</head>
+<body>
+<header class="band hero"><div class="wrap">
+<h1>Fire and forest loss link climate action and life on land in Bolivia</h1>
+<p>An interactive atlas of SDG 13 (climate action) and SDG 15 (life on land) for 343 municipalities, around 2012 and 2024. Re-colour the map with any indicator or analysis result, click a municipality, and compare.</p>
+<div class="kpis">
+<div class="kpi"><b>34%</b><span>of 2024 variation in one fire and forest-loss component (rank PCA)</span></div>
+<div class="kpi"><b>ρ = 0.49</b><span>change in forest-loss CO₂ vs change in forest loss rate, 2012→2024</span></div>
+<div class="kpi"><b>59</b><span>hotspot municipalities: high and still rising pressure</span></div>
+<div class="kpi"><b>153</b><span>municipalities with no forest data, mostly the Altiplano</span></div>
+</div></div></header>
+
+<section class="band"><div class="wrap">
+<h2>Map explorer</h2>
+<p class="sub">Choose a layer and a period. Click a municipality for its full profile. Grey means no data.</p>
+<div class="explore">
+<div>
+<div class="controls">
+<select id="layer" aria-label="Layer"></select>
+<div class="seg" id="period" role="group" aria-label="Period"><button data-p="12">2012</button><button data-p="24">2024</button><button data-p="ch">Change</button></div>
+<input id="search" list="names" placeholder="Find a municipality" aria-label="Find a municipality"><datalist id="names"></datalist>
+</div>
+<div class="mapbox"><svg id="map" role="img" aria-label="Map of Bolivia's municipalities coloured by the selected layer"></svg><div class="tip" id="tip"></div></div>
+<div class="legend" id="legend"></div>
+</div>
+<aside><div class="seg tabs" id="tabs" role="group" aria-label="Side panel"><button data-t="info" aria-pressed="true">About this layer</button><button data-t="muni" aria-pressed="false">Municipality</button></div><div class="panel" id="info"></div><div class="panel" id="panel" hidden></div></aside>
+</div></div></section>
+
+<section class="band" style="background:var(--card)"><div class="wrap">
+<h2>Four types of municipality</h2>
+<p class="sub">Each dot is a forested municipality: its 2024 fire and forest-loss level (PC1) against its 2012→2024 change (change PC1). Click a dot to open it on the map. Level and change correlate at r = <span id="rtyp"></span>, partly because the 2024 level includes the change.</p>
+<div class="grid2">
+<div class="fig" id="scat"><svg></svg></div>
+<div id="typcounts"></div>
+</div></div></section>
+
+<section class="band"><div class="wrap">
+<h2>Which indicators move together</h2>
+<p class="sub">Correlations between SDG 13 (rows) and SDG 15 (columns), and the rank-based PCA loadings. Switch between 2024 levels and 2012→2024 changes.</p>
+<div class="seg" id="lc" role="group" aria-label="Levels or changes" style="margin-bottom:16px"><button data-v="L" aria-pressed="true">2024 levels</button><button data-v="C" aria-pressed="false">Changes 2012→2024</button></div>
+<div class="grid2"><div id="corr"></div><div id="load"></div></div>
+</div></div></section>
+
+<section class="band" style="background:var(--card)"><div class="wrap">
+<h2>All municipalities</h2>
+<p class="sub">Sorted by the column you click. The table follows the map's layer and period.</p>
+<div class="tools">
+<select id="fdep" aria-label="Department"></select><select id="ftyp" aria-label="Type"></select>
+<button class="btn" id="copy">Copy data as CSV</button><span id="copied" class="note" aria-live="polite"></span>
+</div>
+<div class="scroll"><table id="tbl"></table></div>
+</div></section>
+
+<footer class="band"><div class="wrap note">
+<p><b>Data:</b> GeoDevelopment Observatory of Bolivia (geo4bolivia), from Andersen, L. E. &amp; Argandoña, F. (2026), <i>Atlas de los ODS en Bolivia 2026</i>, SDSN Bolivia. <a href="https://quarcs-lab.github.io/geo4bolivia/indicators/municipalities343-sdg13/">SDG 13 data</a> · <a href="https://quarcs-lab.github.io/geo4bolivia/indicators/municipalities343-sdg15/">SDG 15 data</a>.</p>
+<p><b>Method:</b> PCA on ranks of the nine indicators, standardised, for the 190 municipalities with forest data (2024 levels, and 2012→2024 changes). Correlations: Pearson for levels, Spearman for changes. Typology: sign of the level PC1 and change PC1 scores. Values in years "2012" and "2024" come from slightly different years per indicator. Analysis by Kokila Hemachadra, GSID, Nagoya University.</p>
+</div></footer>
+
+<script>
+{
+const V={index_sdg13:['SDG 13 index','0–100',1],index_sdg15:['SDG 15 index','0–100',1],sdg13_1_fec:['Families affected by climate disasters','%',0],sdg13_1_icc:['Climate vulnerability index','index',0],sdg13_2_epb:['CO₂ from forest loss','t/person',0],sdg13_2_ect:['CO₂ from road transport','t/person',0],sdg13_2_eci:['CO₂ from fires','t/person',0],sdg15_1_sap:['Protected area','% of land',1],sdg15_2_tpb:['Forest loss rate','% of forest/yr',0],sdg15_5_pbd:['Biodiversity loss, deforestation','index',0],sdg15_5_pbi:['Biodiversity loss, fires','index',0]};
+const COMP=Object.keys(V).slice(2),C13=COMP.slice(0,5),C15=COMP.slice(5);
+const PCS={PC1:'PCA 2024 · PC1 fire & forest loss',PC2:'PCA 2024 · PC2 urban expansion',PC3:'PCA 2024 · PC3 protection vs vulnerability',cPC1:'PCA change · PC1 deforestation intensification',cPC2:'PCA change · PC2 fires in natural areas vs disasters',cPC3:'PCA change · PC3 vulnerability & transport'};
+const TC={'Hotspot':'#c8501e','New frontier':'#e9a23b','Old frontier':'#3d6fb6','Low & falling':'#8fae9b'};
+const TD={'Hotspot':'High and rising','New frontier':'Low but rising','Old frontier':'High but slowing','Low & falling':'Low and falling'};
+const SEQ_BAD=['#f7efdf','#f3d9a8','#eeb46a','#e2853c','#c8501e','#962f14','#5c1a0c'],SEQ_GOOD=['#eef3e6','#cfe2c3','#a5cb98','#73ad6c','#468c4c','#286b3a','#14472a'],DIV=['#2f5f9e','#5f8fc7','#a9c4e2','#ece9e2','#f1bf91','#e07d3f','#b4441a'];
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const f=(v,d=2)=>v==null?'–':(Math.abs(v)>=100?v.toFixed(0):v.toFixed(d));
+let D,M,state={layer:'PC1',p:'24',sel:null,lc:'L',sort:null,asc:false};
+const isPC=l=>l in PCS,isTyp=l=>l==='type';
+const key=r=>isTyp(state.layer)?r.type:isPC(state.layer)?r[state.layer]:r[state.layer+'_'+state.p];
+function scale(){
+  const vals=D.map(key).filter(v=>v!=null);
+  if(isTyp(state.layer))return{col:v=>v?TC[v]:null,leg:Object.keys(TC).map(k=>`<span><i class="sw" style="background:${TC[k]}"></i>${k}</span>`).join('')};
+  if(isPC(state.layer)||state.p==='ch'){
+    const a=vals.map(Math.abs).sort((x,y)=>x-y),m=a[Math.floor(a.length*.95)]||1,st=2*m/7;
+    const col=v=>DIV[Math.max(0,Math.min(6,Math.floor((v+m)/st)))];
+    const lab=isPC(state.layer)?['Low score','High score']:['Decrease','Increase'];
+    return{col,leg:`<span>${lab[0]}</span>${DIV.map((c,i)=>`<i class="sw" title="${f(-m+st*i)} to ${f(-m+st*(i+1))}" style="background:${c}"></i>`).join('')}<span>${lab[1]}</span><span>· ±${f(m)} ${esc(isPC(state.layer)?'':V[state.layer][1])}</span>`};
+  }
+  const s=[...vals].sort((x,y)=>x-y),q=[1,2,3,4,5,6].map(i=>s[Math.floor(s.length*i/7)]),pal=V[state.layer][2]?SEQ_GOOD:SEQ_BAD;
+  const col=v=>pal[q.filter(t=>v>=t).length];
+  return{col,leg:`<span>Low</span>${pal.map((c,i)=>`<i class="sw" title="${i?f(q[i-1]):f(s[0])} to ${i<6?f(q[i]):f(s.at(-1))}" style="background:${c}"></i>`).join('')}<span>High</span><span>· ${f(s[0])}–${f(s.at(-1))} ${esc(V[state.layer][1])} · ${V[state.layer][2]?'higher = better':'higher = worse'}</span>`};
+}
+function drawMap(){
+  const sc=scale();
+  for(const r of D){const p=r.el,v=key(r);p.style.fill=v==null?'var(--na)':sc.col(v);p.classList.toggle('sel',r.id===state.sel)}
+  const s=D.find(r=>r.id===state.sel);if(s)s.el.parentNode.appendChild(s.el);
+  $('#legend').innerHTML=sc.leg+'<span><i class="sw" style="background:var(--na)"></i>No data</span>';
+  for(const b of document.querySelectorAll('#period button')){const dis=isPC(state.layer)||isTyp(state.layer);b.disabled=dis;b.setAttribute('aria-pressed',!dis&&b.dataset.p===state.p)}
+}
+function panel(){
+  const r=D.find(x=>x.id===state.sel),P=$('#panel');
+  if(!r){P.innerHTML='<h3>Select a municipality</h3><p class="dep">Click the map, a dot in the typology chart, or a table row.</p><p class="note">Try Concepción (hotspot), Caranavi (new frontier) or Cuatro Cañadas (old frontier).</p>';return}
+  const rows=Object.keys(V).map(k=>{const c=r[k+'_ch'];return`<tr><td>${esc(V[k][0])} <span class="note">${esc(V[k][1])}</span></td><td class="n">${f(r[k+'_12'])}</td><td class="n">${f(r[k+'_24'])}</td><td class="n ${c>0?'up':c<0?'dn':''}">${c==null?'–':(c>0?'+':'')+f(c)}</td></tr>`}).join('');
+  const pcs=['PC1','PC2','PC3','cPC1','cPC2','cPC3'].map(k=>`<td class="n">${f(r[k])}</td>`).join('');
+  P.innerHTML=`<h3>${esc(r.name)}</h3><p class="dep">${esc(r.dep)} · ${r.area?Math.round(r.area).toLocaleString('en'):'–'} km²</p>${r.type?`<span class="pill" style="background:${TC[r.type]}">${esc(r.type)}: ${TD[r.type]}</span>`:'<p class="note">No forest data, so no PCA scores or type.</p>'}
+  <table><tr><th>Indicator</th><th class="n">2012</th><th class="n">2024</th><th class="n">Change</th></tr>${rows}</table>
+  <table style="margin-top:12px"><tr><th class="n">PC1</th><th class="n">PC2</th><th class="n">PC3</th><th class="n">cPC1</th><th class="n">cPC2</th><th class="n">cPC3</th></tr><tr>${pcs}</tr></table>`;
+}
+
+const DESC={
+index_sdg13:'The Atlas’s composite score for climate action: the simple average of its five SDG 13 indicators, each rescaled from 0 (worst) to 100 (best). Where an indicator is missing, the average uses only those available.',
+index_sdg15:'The Atlas’s composite score for life on land, built like the SDG 13 index from four indicators. Municipalities without forest data are averaged over only two indicators, so their scores (about 52) are mostly a measurement effect.',
+sdg13_1_fec:'Share of families affected by extreme climate events such as floods, droughts and frost. Values above 100 occur, which suggests families are counted once per event; check the Atlas method before using them.',
+sdg13_1_icc:'A composite index of how exposed and sensitive a municipality is to climate change, and how able it is to adapt.',
+sdg13_2_epb:'Carbon dioxide released when forest is cleared, per inhabitant per year. Measured only where a municipality has more than 1,000 ha of forest.',
+sdg13_2_ect:'Carbon dioxide from road transport, per inhabitant per year. Highest in cities and along main roads; very skewed, with many small municipalities near zero.',
+sdg13_2_eci:'Carbon dioxide released by fires that degrade vegetation, per inhabitant per year. Zero where nothing burned, very high in a few lowland municipalities.',
+sdg15_1_sap:'Share of the municipality’s land legally declared as protected area. Most municipalities have none.',
+sdg15_2_tpb:'Share of the municipality’s forest lost each year. A small forest that is being cleared can show a high rate. Measured only where there is more than 1,000 ha of forest.',
+sdg15_5_pbd:'Loss of biodiversity caused by deforestation, weighted by how many species live in the area cleared.',
+sdg15_5_pbi:'Loss of biodiversity caused by fires, weighted by how many species live in the area burned.'};
+const PCD={
+PC1:['Fire and forest loss','L',0,'The strongest pattern in 2024, and the main bridge between the two goals: places where fires and forest clearing emit carbon (SDG 13) also lose biodiversity (SDG 15). A high score means high fire and forest-loss pressure.','The Chiquitanía and Guarayos in Santa Cruz.'],
+PC2:['Urban expansion','L',1,'Forest loss rate goes with transport emissions. High scores cluster around cities, where vehicles are many and the little forest left is being cleared. A fixed urban pattern: these indicators do not change together over time.','Santa Cruz metro area, Cochabamba, Tarija.'],
+PC3:['Protection vs vulnerability','L',2,'More protected area goes with lower climate vulnerability and fewer disaster-affected families. A high score means more protection and less vulnerability. This link does not hold in the changes, so treat it with care.','Pando in the Amazon north, Puerto Quijarro on the Pantanal border.'],
+cPC1:['Deforestation intensification','C',0,'The strongest pattern of change, 2012→2024: where forest clearing sped up, CO₂ from forest loss and from fires rose, and biodiversity loss from deforestation rose. Clearing and burning act as one process. A high score means pressure intensified.','The Chiquitanía, spreading to the Chaco and the Yungas.'],
+cPC2:['Fires in natural areas vs disasters','C',1,'A contrast: a high score means fires damaged more biodiversity (often where protected area also grew); a low score means more families were hit by disasters and forest-loss CO₂ rose.','Ixiamas and northern Beni.'],
+cPC3:['Vulnerability and transport','C',2,'Rising climate vulnerability together with rising transport emissions. It sits mostly within SDG 13, so it is not an important bridge between the goals.','Mixed; no clear region.']};
+const TDESC={'Hotspot':'High pressure in 2024 and still rising since 2012.','New frontier':'Low pressure in 2024 but rising: where clearing is spreading.','Old frontier':'High pressure in 2024 but slowing, often because most forest was already cleared.','Low & falling':'Low and falling pressure, mostly in the inter-Andean valleys.'};
+function info(){
+  const I=$('#info'),l=state.layer,li=(r,v)=>`<li data-id="${r.id}"><span class="rk"><span>${esc(r.name)} <span class="note">${esc(r.dep)}</span></span><b>${v}</b></span></li>`;
+  if(isTyp(l)){
+    I.innerHTML=`<h3>Typology: four types of municipality</h3><p>Combines each municipality’s 2024 fire and forest-loss level (PC1) with its 2012→2024 change (change PC1). Only the 190 municipalities with forest data have a type.</p>`+Object.keys(TC).map(t=>{const rs=D.filter(r=>r.type===t).sort((a,b)=>Math.abs(b.PC1)+Math.abs(b.cPC1)-Math.abs(a.PC1)-Math.abs(a.cPC1)).slice(0,5);return`<p style="margin-top:12px"><span class="pill" style="background:${TC[t]};margin:0 6px 0 0">${t} · ${D.filter(r=>r.type===t).length}</span>${TDESC[t]}</p><ol style="margin:0 0 4px;padding-left:22px;font-size:14px" class="ranks1">${rs.map(r=>`<li data-id="${r.id}" style="cursor:pointer">${esc(r.name)} <span class="note">${esc(r.dep)}</span></li>`).join('')}</ol>`}).join('')+'<p class="note">Listed: the five clearest cases of each type.</p>';
+    return}
+  const vals=D.filter(r=>key(r)!=null),n=vals.length,sorted=[...vals].sort((a,b)=>key(b)-key(a)),top=sorted.slice(0,10),bot=sorted.slice(-10).reverse();
+  const med=(()=>{const s=vals.map(key).sort((a,b)=>a-b);return s[Math.floor(s.length/2)]})();
+  let head,ranksT;
+  if(isPC(l)){
+    const [nm,w,j,txt,where]=PCD[l],ld=M[w==='L'?'loadL':'loadC'],vr=M[w==='L'?'varL':'varC'];
+    const items=COMP.map((k,i)=>[k,ld[i][j]]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,5);
+    head=`<h3>${esc(PCS[l])}</h3><div class="facts"><span>${Math.round(vr[j]*100)}% of variance</span><span>${n} municipalities</span><span>${w==='L'?'2024 levels':'2012→2024 changes'}, rank-based</span></div><p>${txt}</p><p><b>Where it is high:</b> ${where}</p><p style="margin-bottom:2px"><b>Strongest loadings</b></p><div class="ld">${items.map(([k,v])=>`<span>${k.startsWith('sdg13')?'13':'15'}: ${esc(V[k][0])}</span><span style="display:flex;align-items:center;gap:6px"><i style="width:${Math.abs(v)*100}px;background:${v>0?'#2f5f9e':'#c4471d'}"></i>${v.toFixed(2)}</span>`).join('')}</div>`;
+    ranksT=['Highest scores','Lowest scores'];
+  }else{
+    const [nm,u,good]=V[l],ch=state.p==='ch';
+    head=`<h3>${esc(nm)}${ch?' · change 2012→2024':' · '+(state.p==='12'?'~2012':'~2024')}</h3><div class="facts"><span>${esc(u)}</span><span>${l.includes('13')?'SDG 13':'SDG 15'}</span><span>${good?'Higher = better':'Higher = worse'}</span><span>${n} municipalities with data</span><span>Median ${f(med)}</span></div><p>${DESC[l]}</p>`;
+    ranksT=ch?['Largest increase','Largest decrease']:good?['Highest (best)','Lowest (worst)']:['Highest (worst)','Lowest (best)'];
+  }
+  const fmt=v=>(state.p==='ch'&&!isPC(l)&&v>0?'+':'')+f(v);
+  I.innerHTML=head+`<div class="ranks"><div><h4>${ranksT[0]}</h4><ol>${top.map(r=>li(r,fmt(key(r)))).join('')}</ol></div><div><h4>${ranksT[1]}</h4><ol>${bot.map(r=>li(r,fmt(key(r)))).join('')}</ol></div></div><p class="note" style="margin-top:10px">Click a name to open its profile.</p>`;
+}
+function tab(t){for(const b of document.querySelectorAll('#tabs button'))b.setAttribute('aria-pressed',b.dataset.t===t);$('#info').hidden=t!=='info';$('#panel').hidden=t!=='muni'}
+$('#tabs').addEventListener('click',e=>{const t=e.target.dataset?.t;if(t)tab(t)});
+$('#info').addEventListener('click',e=>{const x=e.target.closest('li[data-id]');if(x)select(x.dataset.id)});
+function select(id,scrollTo){state.sel=id;drawMap();panel();drawScat();tab('muni');if(scrollTo)$('#map').scrollIntoView({behavior:'smooth',block:'center'})}
+const SC=$('#scat svg');
+function drawScat(){
+  if(!D)return;const W=SC.clientWidth,H=SC.clientHeight,p={l:46,r:12,t:30,b:42},pts=D.filter(r=>r.type);if(!W)return;
+  const xs=pts.map(r=>r.PC1),ys=pts.map(r=>r.cPC1),x0=Math.min(...xs)-.3,x1=Math.max(...xs)+.3,y0=Math.min(...ys)-.3,y1=Math.max(...ys)+.3;
+  const X=v=>p.l+(v-x0)/(x1-x0)*(W-p.l-p.r),Y=v=>H-p.b-(v-y0)/(y1-y0)*(H-p.t-p.b),small=W<520;
+  const ticks=small?[]:[-3,-2,-1,1,2,3];
+  let s=`<line x1="${X(0)}" x2="${X(0)}" y1="${p.t}" y2="${H-p.b}" stroke="var(--mut)" stroke-dasharray="4 4"/><line x1="${p.l}" x2="${W-p.r}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mut)" stroke-dasharray="4 4"/>`;
+  s+=ticks.filter(t=>t>x0&&t<x1).map(t=>`<text x="${X(t)}" y="${H-p.b+16}" font-size="12" fill="var(--mut)" text-anchor="middle">${t}</text>`).join('')+ticks.filter(t=>t>y0&&t<y1).map(t=>`<text x="${p.l-8}" y="${Y(t)+4}" font-size="12" fill="var(--mut)" text-anchor="end">${t}</text>`).join('');
+  s+=`<text x="${(W+p.l)/2}" y="${H-6}" font-size="13" fill="var(--mut)" text-anchor="middle">Level 2024 (PC1) →</text><text transform="translate(14 ${(H-p.b)/2}) rotate(-90)" font-size="13" fill="var(--mut)" text-anchor="middle">Change 2012→2024 →</text>`;
+  s+=pts.map(r=>`<circle data-id="${r.id}" cx="${X(r.PC1).toFixed(1)}" cy="${Y(r.cPC1).toFixed(1)}" r="${r.id===state.sel?8:5}" fill="${TC[r.type]}" stroke="${r.id===state.sel?'var(--ink)':'var(--bg)'}" stroke-width="${r.id===state.sel?2.5:1}" style="cursor:pointer"><title>${esc(r.name)} · ${r.type}</title></circle>`).join('');
+  s+=[['Hotspot ↗',W-p.r-4,16,'end'],['↖ New frontier',p.l+4,16,'start'],['Old frontier ↘',W-p.r-4,H-p.b-8,'end'],['↙ Low & falling',p.l+4,H-p.b-8,'start']].map(([t,x,y,a])=>`<text x="${x}" y="${y}" font-size="13" font-weight="700" fill="${TC[t.replace(/[↗↖↘↙] ?| ?[↗↖↘↙]/g,'')]}" text-anchor="${a}">${t}</text>`).join('');
+  SC.innerHTML=s;
+}
+const ro=new ResizeObserver(drawScat);ro.observe(SC);
+SC.addEventListener('click',e=>{const id=e.target.dataset?.id;if(id)select(id,true)});
+function heat(){
+  const L=state.lc==='L',c=M[L?'corrL':'corrC'],ld=M[L?'loadL':'loadC'],vr=M[L?'varL':'varC'];
+  const bg=v=>{const a=Math.min(1,Math.abs(v)/.7);return v>=0?`rgba(47,95,158,${a})`:`rgba(196,71,29,${a})`},fg=v=>Math.abs(v)>.42?'#fff':'inherit';
+  $('#corr').innerHTML=`<h3 style="margin:0 0 8px">${L?'Pearson correlation, 2024':'Spearman correlation of changes'}</h3><table class="heat"><tr><th></th>${C15.map(k=>`<th>${esc(V[k][0])}</th>`).join('')}</tr>${C13.map((k,i)=>`<tr><th>${esc(V[k][0])}</th>${c[i].map(v=>`<td style="background:${bg(v)};color:${fg(v)}">${v.toFixed(2)}</td>`).join('')}</tr>`).join('')}</table>`;
+  const nm=L?['Fire & forest loss','Urban expansion','Protection vs vulnerability']:['Deforestation intensification','Fires in natural areas vs disasters','Vulnerability & transport'];
+  $('#load').innerHTML=`<h3 style="margin:0 0 8px">PCA loadings (rank-based)</h3><table class="heat"><tr><th></th>${nm.map((n,j)=>`<th>PC${j+1} ${esc(n)} · ${Math.round(vr[j]*100)}%</th>`).join('')}</tr>${COMP.map((k,i)=>`<tr><th>${k.startsWith('sdg13')?'13':'15'}: ${esc(V[k][0])}</th>${ld[i].map(v=>`<td style="background:${bg(v)};color:${fg(v)}">${v.toFixed(2)}</td>`).join('')}</tr>`).join('')}</table>`;
+  for(const b of document.querySelectorAll('#lc button'))b.setAttribute('aria-pressed',b.dataset.v===state.lc);
+}
+function cols(){
+  const lab=isTyp(state.layer)?null:isPC(state.layer)?state.layer:V[state.layer][0]+' · '+(state.p==='ch'?'change':'20'+state.p);
+  const c=[['name','Municipality'],['dep','Department'],['type','Type'],['index_sdg13_24','SDG 13 index 2024',1],['index_sdg15_24','SDG 15 index 2024',1],['PC1','PC1',1],['cPC1','Change PC1',1]];
+  if(lab&&!['PC1','cPC1'].includes(state.layer))c.splice(3,0,[isPC(state.layer)?state.layer:state.layer+'_'+state.p,lab,1]);
+  return c;
+}
+function table(){
+  const c=cols(),fd=$('#fdep').value,ft=$('#ftyp').value;
+  let rows=D.filter(r=>(!fd||r.dep===fd)&&(!ft||(ft==='none'?!r.type:r.type===ft)));
+  if(state.sort){const k=state.sort,a=state.asc?1:-1;rows=[...rows].sort((x,y)=>x[k]==null?1:y[k]==null?-1:(x[k]>y[k]?a:x[k]<y[k]?-a:0))}
+  $('#tbl').innerHTML=`<tr>${c.map(([k,l,n])=>`<th class="${n?'n':''}" data-k="${k}">${esc(l)}${state.sort===k?(state.asc?' ▲':' ▼'):''}</th>`).join('')}</tr>`+rows.map(r=>`<tr data-id="${r.id}">${c.map(([k,,n])=>`<td class="${n?'n':''}">${n?f(r[k]):esc(r[k]??'–')}</td>`).join('')}</tr>`).join('');
+}
+function init(data){
+  M=data.meta;D=data.rows;
+  const svg=$('#map');svg.setAttribute('viewBox',`0 0 ${M.W} ${M.H}`);
+  svg.innerHTML=D.map(r=>`<path d="${r.path}" data-id="${r.id}"></path>`).join('');
+  for(const r of D)r.el=svg.querySelector(`path[data-id="${r.id}"]`);
+  $('#layer').innerHTML=`<optgroup label="Analysis results"><option value="type">Typology: four types</option>${Object.entries(PCS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</optgroup><optgroup label="SDG 13 · Climate action">${['index_sdg13',...C13].map(k=>`<option value="${k}">${V[k][0]}</option>`).join('')}</optgroup><optgroup label="SDG 15 · Life on land">${['index_sdg15',...C15].map(k=>`<option value="${k}">${V[k][0]}</option>`).join('')}</optgroup>`;
+  $('#layer').value=state.layer;
+  $('#names').innerHTML=D.map(r=>`<option value="${esc(r.name)} (${esc(r.dep)})"></option>`).join('');
+  $('#fdep').innerHTML='<option value="">All departments</option>'+[...new Set(D.map(r=>r.dep))].sort().map(d=>`<option>${esc(d)}</option>`).join('');
+  $('#ftyp').innerHTML='<option value="">All types</option>'+Object.keys(TC).map(t=>`<option>${t}</option>`).join('')+'<option value="none">No forest data</option>';
+  $('#rtyp').textContent=M.r_typ;
+  const cnt=t=>D.filter(r=>r.type===t).length;
+  $('#typcounts').innerHTML=Object.keys(TC).map(t=>`<div style="display:flex;gap:14px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line)"><b style="font-size:40px;line-height:1;color:${TC[t]};width:2.2ch">${cnt(t)}</b><div><b>${t}</b><br><span class="note">${TD[t]}</span></div></div>`).join('');
+  drawMap();panel();info();heat();table();drawScat();
+}
+const tip=$('#tip'),box=$('.mapbox');
+$('#map').addEventListener('mousemove',e=>{const id=e.target.dataset?.id;if(!id){tip.style.display='none';return}const r=D.find(x=>x.id===id),v=key(r),b=box.getBoundingClientRect();
+  tip.textContent=`${r.name} (${r.dep}): ${isTyp(state.layer)?(v||'no data'):f(v)}`;tip.style.display='block';
+  tip.style.left=Math.max(4,Math.min(e.clientX-b.left+12,b.width-tip.offsetWidth-4))+'px';tip.style.top=(e.clientY-b.top+12)+'px'});
+$('#map').addEventListener('mouseleave',()=>tip.style.display='none');
+$('#map').addEventListener('click',e=>{const id=e.target.dataset?.id;if(id)select(id)});
+$('#layer').addEventListener('change',e=>{state.layer=e.target.value;drawMap();table();info();tab('info')});
+$('#period').addEventListener('click',e=>{const p=e.target.dataset?.p;if(p&&!e.target.disabled){state.p=p;drawMap();table();info();tab('info')}});
+$('#search').addEventListener('change',e=>{const r=D.find(x=>`${x.name} (${x.dep})`===e.target.value)||D.find(x=>x.name.toLowerCase()===e.target.value.trim().toLowerCase());if(r)select(r.id)});
+$('#lc').addEventListener('click',e=>{const v=e.target.dataset?.v;if(v){state.lc=v;heat()}});
+$('#fdep').addEventListener('change',table);$('#ftyp').addEventListener('change',table);
+$('#tbl').addEventListener('click',e=>{const th=e.target.closest('th');if(th){const k=th.dataset.k;state.asc=state.sort===k?!state.asc:false;state.sort=k;table();return}const tr=e.target.closest('tr[data-id]');if(tr)select(tr.dataset.id,true)});
+$('#copy').addEventListener('click',async()=>{
+  const ks=['id','name','dep','type',...Object.keys(V).flatMap(k=>[k+'_12',k+'_24',k+'_ch']),'PC1','PC2','PC3','cPC1','cPC2','cPC3'];
+  const q=v=>v==null?'':/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v;
+  const csv=[ks.join(','),...D.map(r=>ks.map(k=>q(r[k])).join(','))].join('\n');
+  try{await navigator.clipboard.writeText(csv);$('#copied').textContent='Copied 343 rows. Paste into Excel or a text file.'}catch{$('#copied').textContent='Copy was blocked by the browser.'}
+});
+fetch('data.json').then(r=>r.json()).then(init).catch(()=>{$('#panel').innerHTML='<h3>Could not load the data</h3><p class="note">Reload the page to try again.</p>'});
+}
+</script>
+</body>
+</html>
